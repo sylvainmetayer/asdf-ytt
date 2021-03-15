@@ -14,4 +14,4 @@ case "$(uname -s)" in
 		;;
 esac
 
-curl -fL -o "${ASDF_DOWNLOAD_PATH}/ytt" "${DOWNLOAD_URL}"
+curl -s -fL -o "${ASDF_DOWNLOAD_PATH}/ytt" "${DOWNLOAD_URL}"
