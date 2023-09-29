@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for ytt.
 GH_REPO="https://github.com/carvel-dev/ytt"
 TOOL_NAME="ytt"
 TOOL_TEST="ytt --version"
@@ -31,9 +30,22 @@ list_github_tags() {
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-	# Change this function if ytt has other means of determining installable versions.
 	list_github_tags
+}
+
+get_arch() {
+	local arch
+	arch=$(uname -m)
+	case $arch in
+	armv*) arch="arm64" ;;
+	aarch64) arch="amd64" ;;
+	x86_64) arch="amd64" ;;
+	esac
+	echo "$arch"
+}
+
+get_platform() {
+	uname | tr '[:upper:]' '[:lower:]'
 }
 
 download_release() {
@@ -41,8 +53,7 @@ download_release() {
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for ytt
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/v${version}/ytt-$(get_platform)-$(get_arch)"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -61,10 +72,7 @@ install_version() {
 		mkdir -p "$install_path"
 		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
 
-		# TODO: Assert ytt executable exists.
-		local tool_cmd
-		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
-		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
+		test -x "$install_path/$TOOL_NAME" || fail "Expected $install_path/$TOOL_NAME to be executable."
 
 		echo "$TOOL_NAME $version installation was successful!"
 	) || (
